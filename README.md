@@ -1,18 +1,26 @@
-# XxUnkn0wnxX Tap
+# XxUnkn0wnxX Homebrew Tap
 
-## How do I install these formulae?
+Homebrew tap for macOS Big Sur-focused builds from `XxUnkn0wnxX/BDCLI`.
 
-`brew install xxunkn0wnxx/tap/<formula>`
+## Install BDCLI
 
-Or `brew tap xxunkn0wnxx/tap` and then `brew install <formula>`.
-
-Or, in a `brew bundle` `Brewfile`:
-
-```ruby
-tap "xxunkn0wnxx/tap"
-brew "<formula>"
+```bash
+brew tap xxunkn0wnxx/tap
+brew install -sv xxunkn0wnxx/tap/bdcli
 ```
 
-## Documentation
+The `bdcli` formula builds from the `main` branch of `XxUnkn0wnxX/BDCLI`. It depends on the tap-local `go` formula, which preserves a Big Sur-compatible Go toolchain.
 
-`brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).
+## Manage
+
+```bash
+brew reinstall -sv xxunkn0wnxx/tap/bdcli
+brew uninstall xxunkn0wnxx/tap/bdcli
+```
+
+If you want to install or manage the Go formula directly:
+
+```bash
+brew install -sv xxunkn0wnxx/tap/go
+brew uninstall xxunkn0wnxx/tap/go
+```

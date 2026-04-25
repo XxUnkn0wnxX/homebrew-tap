@@ -1,6 +1,5 @@
 # Pinned to the latest Go release this tap supports for macOS Big Sur.
 class Go < Formula
-  keg_only :versioned_formula
   desc "Open source programming language to build simple/reliable/efficient software"
   homepage "https://go.dev/"
   url "https://go.dev/dl/go1.24.8.src.tar.gz"
@@ -13,15 +12,17 @@ class Go < Formula
     skip "Pinned for macOS Big Sur compatibility"
   end
 
+  keg_only :versioned_formula
+
   # Don't update this unless this version cannot bootstrap the new version.
   resource "gobootstrap" do
     version "1.22.12"
-    
+
     checksums = {
-        "darwin-arm64" => "416c35218edb9d20990b5d8fc87be655d8b39926f15524ea35c66ee70273050d",
-        "darwin-amd64" => "e7bbe07e96f0bd3df04225090fe1e7852ed33af37c43a23e16edbbb3b90a5b7c",
-        "linux-arm64"  => "fd017e647ec28525e86ae8203236e0653242722a7436929b1f775744e26278e7",
-        "linux-amd64"  => "4fa4f869b0f7fc6bb1eb2660e74657fbf04cdd290b5aef905585c86051b34d43",
+      "darwin-arm64" => "416c35218edb9d20990b5d8fc87be655d8b39926f15524ea35c66ee70273050d",
+      "darwin-amd64" => "e7bbe07e96f0bd3df04225090fe1e7852ed33af37c43a23e16edbbb3b90a5b7c",
+      "linux-arm64"  => "fd017e647ec28525e86ae8203236e0653242722a7436929b1f775744e26278e7",
+      "linux-amd64"  => "4fa4f869b0f7fc6bb1eb2660e74657fbf04cdd290b5aef905585c86051b34d43",
     }
 
     on_arm do

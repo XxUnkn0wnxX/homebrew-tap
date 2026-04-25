@@ -1,8 +1,10 @@
 class Bdcli < Formula
   desc "BetterDiscord CLI fork for macOS 11 Big Sur on older Intel Macs"
   homepage "https://github.com/XxUnkn0wnxX/BDCLI"
+  url "https://codeload.github.com/XxUnkn0wnxX/BDCLI/tar.gz/4b646b6002352bd10f00f63afc1157d2bd31b8f2"
+  version "4b646b6"
+  sha256 "312da2ad9dcb8a1cd5cbfae0978add41e2559a9355f960ddcccb86a0ea4c9d43"
   license "Apache-2.0"
-  head "https://github.com/XxUnkn0wnxX/BDCLI.git", branch: "main"
 
   depends_on "xxunkn0wnxx/tap/go" => :build
 
@@ -13,7 +15,7 @@ class Bdcli < Formula
     ENV["GOAMD64"] = "v1"
     ENV["MACOSX_DEPLOYMENT_TARGET"] = "11.0"
 
-    short_sha = Utils.safe_popen_read("git", "rev-parse", "--short", "HEAD").chomp
+    short_sha = version.to_s
     build_date = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
     ldflags = %W[
       -s -w

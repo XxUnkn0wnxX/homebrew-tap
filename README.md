@@ -11,7 +11,7 @@ brew tap xxunkn0wnxx/tap
 brew install -sv xxunkn0wnxx/tap/bdcli
 ```
 
-The `bdcli` formula builds from the `main` branch of `XxUnkn0wnxX/BDCLI`. It depends on the tap-local `go` formula, which preserves a Big Sur-compatible Go toolchain.
+The `bdcli` formula builds from the pinned BDCLI source snapshot defined in this tap. It depends on the tap-local `go` formula, which preserves a Big Sur-compatible Go toolchain.
 
 ## Manage
 

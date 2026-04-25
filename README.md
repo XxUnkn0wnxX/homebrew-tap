@@ -1,6 +1,8 @@
 # XxUnkn0wnxX Homebrew Tap
 
-Homebrew tap for macOS Big Sur-focused builds from `XxUnkn0wnxX/BDCLI`.
+General-purpose Homebrew tap for formulas maintained by XxUnkn0wnxX.
+
+The current `bdcli` formula is focused on macOS Big Sur-compatible builds from `XxUnkn0wnxX/BDCLI`, but the tap itself is not limited to BDCLI.
 
 ## Install BDCLI
 

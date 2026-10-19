@@ -22,10 +22,6 @@ class Go < Formula
 
   keg_only :versioned_formula
 
-  on_macos do
-    depends_on macos: :big_sur
-  end
-
   # Don't update this unless this version cannot bootstrap the new version.
   resource "gobootstrap" do
     checksums = {
@@ -66,7 +62,7 @@ class Go < Formula
     source = Pathname(path)
     # Homebrew inreplace reads bytes; assembly identifiers contain UTF-8 middle dots.
     count = source.binread.scan(Regexp.new(Regexp.escape(before.b))).length
-    raise "Go Big Sur backport: expected one source anchor in #{path}, found #{count}" unless count == 1
+    raise "Go Big Sur backport: expected one source anchor in #{path}, found #{count}" if count != 1
 
     inreplace source, before.b, after.b
   end
@@ -120,22 +116,22 @@ class Go < Formula
     # The evaluated trustObj stays alive until after these borrowed refs are exported.
     # Do not release the refs or share/mutate that trust object concurrently.
     replace_source_once "src/crypto/x509/root_darwin.go", <<~OLD.gsub(/^/, "\t"), <<~NEW.gsub(/^/, "\t")
-        chain := [][]*Certificate{{}}
-        chainRef, err := macos.SecTrustCopyCertificateChain(trustObj)
-        if err != nil {
-        \treturn nil, err
-        }
-        defer macos.CFRelease(chainRef)
-        for i := 0; i < macos.CFArrayGetCount(chainRef); i++ {
-        \tcertRef := macos.CFArrayGetValueAtIndex(chainRef, i)
+      chain := [][]*Certificate{{}}
+      chainRef, err := macos.SecTrustCopyCertificateChain(trustObj)
+      if err != nil {
+      \treturn nil, err
+      }
+      defer macos.CFRelease(chainRef)
+      for i := 0; i < macos.CFArrayGetCount(chainRef); i++ {
+      \tcertRef := macos.CFArrayGetValueAtIndex(chainRef, i)
     OLD
-        chain := [][]*Certificate{{}}
-        numCerts := macos.SecTrustGetCertificateCount(trustObj)
-        for i := 0; i < numCerts; i++ {
-        \tcertRef, err := macos.SecTrustGetCertificateAtIndex(trustObj, i)
-        \tif err != nil {
-        \t\treturn nil, err
-        \t}
+      chain := [][]*Certificate{{}}
+      numCerts := macos.SecTrustGetCertificateCount(trustObj)
+      for i := 0; i < numCerts; i++ {
+      \tcertRef, err := macos.SecTrustGetCertificateAtIndex(trustObj, i)
+      \tif err != nil {
+      \t\treturn nil, err
+      \t}
     NEW
 
     # Apply before toolchain1 so every bootstrap linker and later Go binary inherits it.
@@ -161,7 +157,7 @@ class Go < Formula
     ENV["GOPROXY"] = "off"
     ENV["GOSUMDB"] = "off"
     # cmd/dist also has its own four-job scheduler; keep every bootstrap stage.
-    ENV["GOMAXPROCS"] = [[ENV.make_jobs.to_i, 1].max, 4].min.to_s
+    ENV["GOMAXPROCS"] = ENV.make_jobs.to_i.clamp(1, 4).to_s
 
     cd libexec/"src" do
       # Set portable defaults for CC/CXX to be used by cgo
@@ -184,7 +180,7 @@ class Go < Formula
       This formula carries a best-effort Big Sur x509 and linker backport.
       Go 1.24.13 is downloaded as an isolated bootstrap build resource;
       an existing Go installation is not required or replaced by the bootstrap.
-      The previous Go 1.24.8 formula is saved at backups/go-1.24.8.rb in this tap.
+      The previous Go 1.24.8 formula is saved at backups/go-1.24.8.rb.bak in this tap.
       On Big Sur, toolchain selection defaults to local because official newer
       toolchains do not include this backport; explicit Go configuration can override it.
       The source build has been reported working on Intel Big Sur.

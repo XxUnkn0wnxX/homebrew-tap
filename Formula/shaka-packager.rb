@@ -36,6 +36,8 @@ class ShakaPackager < Formula
       "-DCMAKE_MAKE_PROGRAM=#{formula_opt_bin("ninja")}/ninja",
       "-DPython3_EXECUTABLE=#{formula_opt_bin("python@3.14")}/python3.14",
     ]
+    # Avoid Homebrew's ambiguous bare-name lookup when both Shaka taps are present.
+    args << "-DCMAKE_INSTALL_NAME_DIR=#{opt_lib}" if OS.mac?
 
     system "cmake", "-S", ".", "-B", "build", *args
     system "cmake", "--build", "build", "--parallel"

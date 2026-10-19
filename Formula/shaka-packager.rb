@@ -33,8 +33,8 @@ class ShakaPackager < Formula
       "-GNinja",
       "-DBUILD_SHARED_LIBS=ON",
       "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
-      "-DCMAKE_MAKE_PROGRAM=#{Formula["ninja"].opt_bin}/ninja",
-      "-DPython3_EXECUTABLE=#{Formula["python@3.14"].opt_bin}/python3.14",
+      "-DCMAKE_MAKE_PROGRAM=#{formula_opt_bin("ninja")}/ninja",
+      "-DPython3_EXECUTABLE=#{formula_opt_bin("python@3.14")}/python3.14",
     ]
 
     system "cmake", "-S", ".", "-B", "build", *args

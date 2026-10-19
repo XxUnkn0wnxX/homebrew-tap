@@ -11,7 +11,8 @@ jobs:
   pr-pull:
     # Publication is disabled; retain the generated workflow for later use.
     # Original condition: contains(github.event.pull_request.labels.*.name, 'pr-pull')
-    if: ${{ false }}
+    # always() is true, so its negation keeps this job disabled.
+    if: ${{ !always() }}
     runs-on: ubuntu-latest
     permissions:
       actions: read

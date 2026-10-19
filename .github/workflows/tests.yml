@@ -104,11 +104,13 @@ jobs:
         run: brew test-bot --only-formulae
         # Keep the generated bottle lifecycle available without running it.
         # Original condition: github.event_name == 'pull_request'
-        if: ${{ false }}
+        # always() is true, so its negation keeps this step disabled.
+        if: ${{ !always() }}
 
       - name: Upload bottles as artifact
         # Original condition: always() && github.event_name == 'pull_request'
-        if: ${{ false }}
+        # always() is true, so its negation keeps this step disabled.
+        if: ${{ !always() }}
         uses: actions/upload-artifact@v4
         with:
           name: bottles_${{ matrix.os }}

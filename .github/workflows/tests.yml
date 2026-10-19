@@ -6,9 +6,11 @@ on:
       - main
     paths:
       - "Formula/**/*.rb"
+      - ".github/workflows/*.yml"
   pull_request:
     paths:
       - "Formula/**/*.rb"
+      - ".github/workflows/*.yml"
 
 jobs:
   test-bot:
@@ -44,11 +46,69 @@ jobs:
       - run: brew test-bot --only-setup
 
       - run: brew test-bot --only-tap-syntax
-      - run: brew test-bot --only-formulae
+
+      - name: Detect changed formulae
+        id: formulae
         if: github.event_name == 'pull_request'
+        run: brew test-bot --only-formulae-detect
+
+      - name: Build and test changed formulae from source
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          TESTING_FORMULAE: ${{ steps.formulae.outputs.testing_formulae }}
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+        run: |
+          set -euo pipefail
+          if [[ -z "$TESTING_FORMULAE" ]]; then
+            echo "No changed formulae to build/test."
+            exit 0
+          fi
+
+          IFS=',' read -r -a formulae <<< "$TESTING_FORMULAE"
+          for formula in "${formulae[@]}"; do
+            # Ruby's $stdin must reach Ruby without shell expansion.
+            # shellcheck disable=SC2016
+            metadata="$(brew info --formula --json=v2 "$formula" | brew ruby -rjson -e '
+              formula = JSON.parse($stdin.read).fetch("formulae").fetch(0)
+              versions = formula.fetch("versions")
+              spec = if versions["stable"]
+                "stable"
+              elsif versions["head"]
+                "head"
+              else
+                abort "Formula has no buildable source"
+              end
+              puts "#{spec} #{formula.fetch("installed").empty? ? "absent" : "installed"}"
+            ')"
+            read -r spec installed <<< "$metadata"
+            install_args=(--formula --build-from-source --include-test)
+            test_args=(--verbose)
+            if [[ "$spec" == head ]]; then
+              install_args+=(--HEAD)
+              test_args+=(--HEAD)
+            fi
+
+            # A same-name keg from another tap must also be removed on this CI runner.
+            if [[ "$installed" == installed ]]; then
+              brew uninstall --formula --force --ignore-dependencies "${formula##*/}"
+            fi
+            brew install "${install_args[@]}" "$formula"
+            brew linkage --test "$formula"
+            brew test "${test_args[@]}" "$formula"
+            brew audit --formula "$formula"
+          done
+
+      - name: Bottle lifecycle (disabled)
+        run: brew test-bot --only-formulae
+        # Keep the generated bottle lifecycle available without running it.
+        # Original condition: github.event_name == 'pull_request'
+        if: ${{ false }}
 
       - name: Upload bottles as artifact
-        if: always() && github.event_name == 'pull_request'
+        # Original condition: always() && github.event_name == 'pull_request'
+        if: ${{ false }}
         uses: actions/upload-artifact@v4
         with:
           name: bottles_${{ matrix.os }}

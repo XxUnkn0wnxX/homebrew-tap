@@ -44,3 +44,9 @@ If you want to install or manage the Go formula directly:
 brew install -sv xxunkn0wnxx/tap/go
 brew uninstall xxunkn0wnxx/tap/go
 ```
+
+## CI checks
+
+Formula and workflow changes run Homebrew style, loading and audit checks on macOS and Linux. Pull requests also build changed formulas from source, check their linked libraries and run their formula tests. Standard Homebrew dependency bottles may be downloaded during those builds.
+
+Bottle creation, bottle uploads and automatic publishing are disabled. Their generated workflow definitions remain in the repository for future use.

@@ -49,7 +49,7 @@ jobs:
 
       - run: brew test-bot --only-setup
 
-      - run: brew test-bot --only-tap-syntax
+      - run: brew test-bot --only-tap-syntax --verbose
 
       - name: Detect changed formulae
         id: formulae

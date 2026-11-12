@@ -1,6 +1,12 @@
 name: brew pr-pull
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Formula/**/*.rb"
+      - ".github/workflows/*.yml"
   pull_request_target:
     types:
       - labeled
@@ -9,7 +15,8 @@ on:
 
 jobs:
   pr-pull:
-    # Publication is disabled; retain the generated workflow for later use.
+    # Publication is disabled for both events; retain the workflow for later use.
+    # Push publication also needs bottle artifacts and an import/upload step.
     # Original condition: contains(github.event.pull_request.labels.*.name, 'pr-pull')
     # always() is true, so its negation keeps this job disabled.
     if: ${{ !always() }}
@@ -30,18 +37,20 @@ jobs:
         uses: Homebrew/actions/git-user-config@main
 
       - name: Pull bottles
+        if: github.event_name == 'pull_request_target'
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST: ${{ github.event.pull_request.number }}
         run: brew pr-pull --debug --tap="$GITHUB_REPOSITORY" "$PULL_REQUEST"
 
       - name: Push commits
+        if: github.event_name == 'pull_request_target'
         uses: Homebrew/actions/git-try-push@main
         with:
           branch: main
 
       - name: Delete branch
-        if: github.event.pull_request.head.repo.fork == false
+        if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.fork == false
         env:
           BRANCH: ${{ github.event.pull_request.head.ref }}
         run: git push --delete origin "$BRANCH"

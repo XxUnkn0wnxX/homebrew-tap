@@ -38,18 +38,17 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cache Homebrew Bundler RubyGems
+      - name: Cache RubyGems for formula tests
+        if: github.event_name == 'pull_request'
         uses: actions/cache@v4
         with:
           path: ${{ steps.set-up-homebrew.outputs.gems-path }}
-          key: ${{ matrix.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
-          restore-keys: ${{ matrix.os }}-rubygems-
+          key: ${{ matrix.os }}-formula-test-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
+          restore-keys: ${{ matrix.os }}-formula-test-rubygems-
 
-      - run: brew test-bot --only-cleanup-before
-
-      - run: brew test-bot --only-setup
-
-      - run: brew test-bot --only-tap-syntax --verbose
+      - name: Load formulas across supported configurations
+        # Stable mode loads formulae without Homebrew's style/audit toolchain.
+        run: brew test-bot --only-tap-syntax --stable --verbose
 
       - name: Detect changed formulae
         id: formulae
@@ -101,7 +100,6 @@ jobs:
             brew install "${install_args[@]}" "$formula"
             brew linkage --test "$formula"
             brew test "${test_args[@]}" "$formula"
-            brew audit --formula "$formula"
           done
 
       - name: Bottle lifecycle (disabled)

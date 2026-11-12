@@ -22,7 +22,8 @@ class Go < Formula
 
   keg_only :versioned_formula
 
-  # Don't update this unless this version cannot bootstrap the new version.
+  # Go 1.24.13 is the final official release compatible with Big Sur.
+  # Keep this pinned: newer official macOS toolchains require macOS 12 or later.
   resource "gobootstrap" do
     checksums = {
       "darwin-arm64" => "f282d882c3353485e2fc6c634606d85caf36e855167d59b996dbeae19fa7629a",
@@ -36,20 +37,24 @@ class Go < Formula
     on_arm do
       on_macos do
         url "https://go.dev/dl/go#{version}.darwin-arm64.tar.gz"
+        mirror "https://dl.google.com/go/go#{version}.darwin-arm64.tar.gz"
         sha256 checksums["darwin-arm64"]
       end
       on_linux do
         url "https://go.dev/dl/go#{version}.linux-arm64.tar.gz"
+        mirror "https://dl.google.com/go/go#{version}.linux-arm64.tar.gz"
         sha256 checksums["linux-arm64"]
       end
     end
     on_intel do
       on_macos do
         url "https://go.dev/dl/go#{version}.darwin-amd64.tar.gz"
+        mirror "https://dl.google.com/go/go#{version}.darwin-amd64.tar.gz"
         sha256 checksums["darwin-amd64"]
       end
       on_linux do
         url "https://go.dev/dl/go#{version}.linux-amd64.tar.gz"
+        mirror "https://dl.google.com/go/go#{version}.linux-amd64.tar.gz"
         sha256 checksums["linux-amd64"]
       end
     end
@@ -149,8 +154,9 @@ class Go < Formula
     end
 
     libexec.install Dir["*"]
-    (buildpath/"gobootstrap").install resource("gobootstrap")
-    ENV["GOROOT_BOOTSTRAP"] = buildpath/"gobootstrap"
+    bootstrap = buildpath/"gobootstrap"
+    bootstrap.install resource("gobootstrap")
+    ENV["GOROOT_BOOTSTRAP"] = bootstrap
     ENV["GOTOOLCHAIN"] = "local"
     ENV["GOENV"] = "off"
     ENV["GOWORK"] = "off"
@@ -158,6 +164,18 @@ class Go < Formula
     ENV["GOSUMDB"] = "off"
     # cmd/dist also has its own four-job scheduler; keep every bootstrap stage.
     ENV["GOMAXPROCS"] = ENV.make_jobs.to_i.clamp(1, 4).to_s
+
+    bootstrap_go = bootstrap/"bin/go"
+    odie "The pinned Go bootstrap executable is missing: #{bootstrap_go}" unless bootstrap_go.executable?
+
+    bootstrap_version = with_env(GOROOT: bootstrap.to_s, GO111MODULE: "off", GOOS: "", GOARCH: "",
+                                 GOEXPERIMENT: "", GOFLAGS: "") do
+      Utils.safe_popen_read(bootstrap_go, "env", "GOVERSION").strip
+    end
+    expected_bootstrap = "go#{resource("gobootstrap").version}"
+    if bootstrap_version != expected_bootstrap
+      odie "Expected the pinned bootstrap #{expected_bootstrap}, got #{bootstrap_version.inspect}."
+    end
 
     cd libexec/"src" do
       # Set portable defaults for CC/CXX to be used by cgo
@@ -178,8 +196,8 @@ class Go < Formula
   def caveats
     <<~EOS
       This formula carries a best-effort Big Sur x509 and linker backport.
-      Go 1.24.13 is downloaded as an isolated bootstrap build resource;
-      an existing Go installation is not required or replaced by the bootstrap.
+      Go 1.24.13, the final official Big Sur-compatible release, is downloaded
+      and validated as an isolated bootstrap; an existing Go installation is not used.
       The previous Go 1.24.8 formula is saved at backups/go-1.24.8.rb.bak in this tap.
       On Big Sur, toolchain selection defaults to local because official newer
       toolchains do not include this backport; explicit Go configuration can override it.
